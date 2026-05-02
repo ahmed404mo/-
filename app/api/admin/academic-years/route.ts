@@ -11,8 +11,16 @@ export async function GET() {
       return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
     }
 
-    const academicYears = await prisma.academicYear.findMany()
-    return NextResponse.json(academicYears || [])
+    // تحقق من وجود النموذج
+    let academicYears = []
+    try {
+      academicYears = await prisma.academicYear.findMany()
+    } catch (error) {
+      console.log('AcademicYear model not found yet')
+      academicYears = []
+    }
+
+    return NextResponse.json(academicYears)
   } catch (error) {
     console.error('Error:', error)
     return NextResponse.json([])
