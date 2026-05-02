@@ -6,6 +6,9 @@ export default withAuth(
     const token = req.nextauth.token
     const path = req.nextUrl.pathname
 
+    console.log('Middleware - Path:', path)
+    console.log('Middleware - Token:', token?.email, 'Role:', (token as any)?.role)
+
     // مسارات Super Admin
     if (path.startsWith('/admin')) {
       if ((token as any)?.role !== 'SUPER_ADMIN') {
@@ -24,7 +27,10 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => true // نسمح للكل ثم نتحقق في middleware
+      authorized: ({ token }) => {
+        console.log('Authorized callback - Token exists:', !!token)
+        return true
+      }
     }
   }
 )
