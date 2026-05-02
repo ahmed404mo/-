@@ -1,10 +1,12 @@
 // app/dashboard/probations/page.tsx
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 
 export default async function ProbationsPage() {
-  // جلب البيانات من Neon عبر Prisma
+  // جلب البيانات من قاعدة البيانات
   const probations = await prisma.probationForm.findMany({
-    include: { student: { include: { user: true } } }
+    include: { 
+      student: true   // الطالب فقط، لا يوجد user داخل student
+    }
   });
 
   return (
@@ -15,15 +17,17 @@ export default async function ProbationsPage() {
         <thead>
           <tr className="bg-gray-100">
             <th className="py-2 px-4 border-b">اسم الطالب</th>
+            <th className="py-2 px-4 border-b">كود الطالب</th>
             <th className="py-2 px-4 border-b">المعدل التراكمي</th>
             <th className="py-2 px-4 border-b">مستوى الإنذار</th>
             <th className="py-2 px-4 border-b">الحالة</th>
-          </tr>
+           </tr>
         </thead>
         <tbody>
           {probations.map((probation) => (
             <tr key={probation.id} className="text-center">
-              <td className="py-2 px-4 border-b">{probation.student.user.name}</td>
+              <td className="py-2 px-4 border-b">{probation.student.name}</td>
+              <td className="py-2 px-4 border-b">{probation.student.code}</td>
               <td className="py-2 px-4 border-b">{probation.gpa}</td>
               <td className="py-2 px-4 border-b">{probation.level}</td>
               <td className="py-2 px-4 border-b">{probation.status}</td>
