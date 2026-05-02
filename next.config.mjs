@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['xlsx'],
+  serverExternalPackages: ['xlsx'],
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      stream: false,
+      crypto: false,
+    };
+    return config;
   },
 }
 
