@@ -24,13 +24,17 @@ export default function LoginPage() {
     const result = await signIn('credentials', {
       email,
       password,
-      redirect: true,
+      redirect: false,  // غيرنا إلى false
       callbackUrl: callbackUrl,
     });
     
-    // إذا وصلنا إلى هنا، فهناك خطأ
-    setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-    setLoading(false);
+    if (result?.error) {
+      setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      setLoading(false);
+    } else {
+      // التوجيه اليدوي بعد نجاح تسجيل الدخول
+      window.location.href = callbackUrl;
+    }
   };
 
   return (
