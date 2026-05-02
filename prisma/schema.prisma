@@ -34,6 +34,7 @@ model User {
   advisorAssignments AdvisorAssignment[]
   interviews         Interview[]
   followUps          FollowUp[]
+  excellenceMeetings ExcellenceMeeting[]  // أضف هذا السطر
 }
 
 // ========== ملف الطالب ==========
@@ -50,7 +51,8 @@ model Student {
   createdAt      DateTime @default(now())
 
   // العلاقات
-  interviews     Interview[]
+  interviews        Interview[]
+  excellenceMeetings ExcellenceMeeting[]  // أضف هذا السطر
 }
 
 // ========== المقابلة الإرشادية ==========
@@ -112,4 +114,18 @@ model AdvisorAssignment {
   createdAt      DateTime     @default(now())
 
   @@unique([advisorId, departmentId, groupName])
+}
+// ========== جلسات التفوق ==========
+model ExcellenceMeeting {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id])
+  advisorId         String
+  advisor           User     @relation(fields: [advisorId], references: [id])
+  meetingType       String
+  location          String
+  kpiParticipation  Float
+  kpiSatisfaction   Float
+  date              DateTime @default(now())
+  createdAt         DateTime @default(now())
 }

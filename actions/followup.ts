@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { FollowUpStatus } from '@prisma/client'
 
 export async function createFollowUp(formData: FormData) {
   try {
