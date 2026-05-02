@@ -131,3 +131,9 @@ model ProbationForm {
   status           String   @default("PENDING")
   date             DateTime @default(now())
 }
+model AcademicYear {
+  id        String   @id @default(cuid())
+  year      Int
+  name      String
+  createdAt DateTime @default(now())
+}
