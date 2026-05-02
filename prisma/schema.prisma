@@ -7,21 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ========== الصلاحيات ==========
 enum Role {
   STUDENT
   ADVISOR
   SUPER_ADMIN 
 }
 
-// ========== حالة المتابعة ==========
 enum FollowUpStatus {
-  OPEN      // قيد المتابعة
-  CLOSED    // تم الإغلاق
-  REFERRED  // تم التحويل لوحدة/لجنة
+  OPEN
+  CLOSED
+  REFERRED
 }
 
-// ========== المستخدمين ==========
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -30,14 +27,13 @@ model User {
   role      Role     @default(ADVISOR)
   createdAt DateTime @default(now())
 
-  // العلاقات
   advisorAssignments AdvisorAssignment[]
   interviews         Interview[]
   followUps          FollowUp[]
-  excellenceMeetings ExcellenceMeeting[]  // أضف هذا السطر
+  excellenceMeetings ExcellenceMeeting[]
+  probationForms     ProbationForm[]
 }
 
-// ========== ملف الطالب ==========
 model Student {
   id             String   @id @default(cuid())
   code           String   @unique
@@ -50,58 +46,48 @@ model Student {
   parentPhone    String?
   createdAt      DateTime @default(now())
 
-  // العلاقات
   interviews        Interview[]
-  excellenceMeetings ExcellenceMeeting[]  // أضف هذا السطر
+  excellenceMeetings ExcellenceMeeting[]
+  probationForms    ProbationForm[]
 }
 
-// ========== المقابلة الإرشادية ==========
 model Interview {
   id          String   @id @default(cuid())
   studentId   String
   student     Student  @relation(fields: [studentId], references: [id])
   advisorId   String
   advisor     User     @relation(fields: [advisorId], references: [id])
-  
   date        DateTime @default(now())
   problem     String   @db.Text
   guidance    String   @db.Text
   situation   String?
-  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   followUps   FollowUp[]
 }
 
-// ========== متابعة الحالة ==========
 model FollowUp {
   id             String         @id @default(cuid())
   interviewId    String
   interview      Interview      @relation(fields: [interviewId], references: [id])
   advisorId      String
   advisor        User           @relation(fields: [advisorId], references: [id])
-  
   sessionDate    DateTime       @default(now())
   sessionType    String         
   progress       String         @db.Text 
   recommendation String?        @db.Text
   status         FollowUpStatus @default(OPEN)
-  
   createdAt      DateTime       @default(now())
 }
 
-// ========== الأقسام ==========
 model Department {
   id        String   @id @default(cuid())
   name      String
   code      String   @unique
   createdAt DateTime @default(now())
-  
   advisorAssignments AdvisorAssignment[]
 }
 
-// ========== توزيع المرشدين ==========
 model AdvisorAssignment {
   id             String       @id @default(cuid())
   advisorId      String
@@ -112,10 +98,9 @@ model AdvisorAssignment {
   semester       Int
   calendarYear   Int
   createdAt      DateTime     @default(now())
-
   @@unique([advisorId, departmentId, groupName])
 }
-// ========== جلسات التفوق ==========
+
 model ExcellenceMeeting {
   id                String   @id @default(cuid())
   studentId         String
@@ -128,4 +113,21 @@ model ExcellenceMeeting {
   kpiSatisfaction   Float
   date              DateTime @default(now())
   createdAt         DateTime @default(now())
+}
+
+model ProbationForm {
+  id               String   @id @default(cuid())
+  studentId        String
+  student          Student  @relation(fields: [studentId], references: [id])
+  advisorId        String
+  advisor          User     @relation(fields: [advisorId], references: [id])
+  level            String
+  gpa              Float
+  passedHours      Int
+  remainingHours   Int
+  absencePercentage Float
+  failedCourses    String
+  interventionPlan String
+  status           String   @default("PENDING")
+  date             DateTime @default(now())
 }
