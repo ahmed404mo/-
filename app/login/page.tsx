@@ -15,28 +15,22 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const res = await signIn('credentials', {
-      redirect: false,
+    // تحديد المسار حسب البريد الإلكتروني
+    let callbackUrl = '/dashboard';
+    if (email === 'superadmin@cu.edu.eg') {
+      callbackUrl = '/admin';
+    }
+
+    const result = await signIn('credentials', {
       email,
       password,
+      redirect: true,
+      callbackUrl: callbackUrl,
     });
-
-    if (res?.error) {
-      setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-      setLoading(false);
-    } else {
-      // جلب الجلسة لمعرفة صلاحية المستخدم
-      const sessionRes = await fetch('/api/auth/session');
-      const session = await sessionRes.json();
-      
-      const role = session?.user?.role;
-      
-      if (role === 'SUPER_ADMIN') {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = '/dashboard';
-      }
-    }
+    
+    // إذا وصلنا إلى هنا، فهناك خطأ
+    setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+    setLoading(false);
   };
 
   return (
