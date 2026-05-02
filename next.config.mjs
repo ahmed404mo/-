@@ -1,11 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      stream: false,
+      crypto: false,
+    };
+    return config;
   },
-  images: {
-    unoptimized: true,
-  },
+  serverExternalPackages: ['xlsx'],
 }
 
-export default nextConfig
+module.exports = nextConfig
