@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    turbopack: {}, 
-  },
+  turbopack: {},
+  
+  serverExternalPackages: ['xlsx'],
+  
+  swcMinify: true,
+  
+  staticPageGenerationTimeout: 120,
 }
 
-module.exports = nextConfig
+export default nextConfig
