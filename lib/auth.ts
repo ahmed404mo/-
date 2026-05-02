@@ -51,6 +51,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).role = token.role;
         (session.user as any).id = token.id;
       }
+      console.log("Session in callback:", session); // للتأكد
       return session;
     }
   },

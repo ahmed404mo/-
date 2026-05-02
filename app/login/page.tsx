@@ -8,16 +8,15 @@ import { Lock, Mail } from 'lucide-react';
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const[password, setPassword] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const[loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // استدعاء دالة تسجيل الدخول من NextAuth
     const res = await signIn('credentials', {
       redirect: false,
       email,
@@ -28,8 +27,17 @@ export default function LoginPage() {
       setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
       setLoading(false);
     } else {
-      // توجيه المستخدم إلى لوحة التحكم عند نجاح تسجيل الدخول
-      router.push('/dashboard');
+      // جلب الجلسة لمعرفة صلاحية المستخدم
+      const sessionRes = await fetch('/api/auth/session');
+      const session = await sessionRes.json();
+      
+      const role = session?.user?.role;
+      
+      if (role === 'SUPER_ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
       router.refresh();
     }
   };
@@ -38,20 +46,17 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50" dir="rtl">
       <div className="bg-white p-8 md:p-10 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
         
-        {/* ترويسة اللوجو والاسم */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-blue-700 mb-2">بوابة الإرشاد الأكاديمي</h1>
           <p className="text-gray-500 text-sm">كلية التربية للطفولة المبكرة</p>
         </div>
 
-        {/* عرض رسالة الخطأ إن وجدت */}
         {error && (
           <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 text-center font-semibold">
             {error}
           </div>
         )}
 
-        {/* نموذج تسجيل الدخول */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-gray-700 font-bold mb-2">البريد الإلكتروني</label>

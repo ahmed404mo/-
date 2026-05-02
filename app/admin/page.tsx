@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { Users, UserCheck, Calendar, TrendingUp, Shield, Activity } from 'lucide-react'
+import { Users, UserCheck, Calendar, TrendingUp, Shield, Activity, FileText } from 'lucide-react'
 
 interface Stats {
   totalAdvisors: number
@@ -90,7 +90,6 @@ export default function AdminDashboard() {
         <p className="text-gray-500 mt-2">نظرة عامة على نظام الإرشاد الأكاديمي</p>
       </div>
 
-      {/* بطاقات الإحصائيات */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((card, index) => {
           const Icon = card.icon
@@ -109,25 +108,20 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* نشاط النظام */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* آخر النشاطات */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-xl font-bold mb-4">آخر النشاطات</h2>
           <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm">تم إضافة مرشد أكاديمي جديد</p>
-                  <p className="text-xs text-gray-400 mt-1">منذ ساعة</p>
-                </div>
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm">تم إضافة مرشد أكاديمي جديد</p>
+                <p className="text-xs text-gray-400 mt-1">منذ ساعة</p>
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
-        {/* روابط سريعة */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-xl font-bold mb-4">روابط سريعة</h2>
           <div className="space-y-3">

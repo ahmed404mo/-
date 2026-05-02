@@ -66,8 +66,8 @@ export async function POST(request: Request) {
           create: assignments.map((assignment: any) => ({
             departmentId: assignment.departmentId,
             groupName: assignment.groupName,
-            semester: assignment.semester,
-            calendarYear: assignment.academicYearNum,
+            semester: Number(assignment.semester),
+            calendarYear: assignment.academicYearNum ? Number(assignment.academicYearNum) : new Date().getFullYear(),
           }))
         } : undefined
       },
@@ -82,8 +82,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, advisor })
   } catch (error) {
-    console.error('Error:', error)
-    return NextResponse.json({ error: 'خطأ في السيرفر' }, { status: 500 })
+    console.error('Error in POST:', error)
+    return NextResponse.json({ error: 'خطأ في السيرفر: ' + (error as Error).message }, { status: 500 })
   }
 }
 
@@ -98,6 +98,8 @@ export async function PUT(request: Request) {
     const body = await request.json()
     const { id, name, email, password, assignments } = body
 
+    console.log('PUT received:', { id, name, email, assignments })
+
     if (!id || !name || !email) {
       return NextResponse.json({ error: 'البيانات غير مكتملة' }, { status: 400 })
     }
@@ -107,22 +109,46 @@ export async function PUT(request: Request) {
       where: { advisorId: id }
     })
 
-    // تحديث المرشد مع التوزيعات الجديدة
-    const updatedAdvisor = await prisma.user.update({
-      where: { id },
-      data: {
-        name,
-        email,
-        ...(password && password.trim() !== '' && { password: await bcrypt.hash(password, 10) }),
-        advisorAssignments: assignments && assignments.length > 0 ? {
-          create: assignments.map((assignment: any) => ({
+    // تجهيز بيانات التوزيعات الجديدة
+    let assignmentsData = undefined
+    if (assignments && assignments.length > 0) {
+      assignmentsData = {
+        create: assignments.map((assignment: any) => {
+          // التأكد من وجود قيمة صحيحة لـ calendarYear
+          let calendarYear = new Date().getFullYear()
+          if (assignment.academicYearNum) {
+            calendarYear = Number(assignment.academicYearNum)
+          } else if (assignment.calendarYear) {
+            calendarYear = Number(assignment.calendarYear)
+          }
+          
+          return {
             departmentId: assignment.departmentId,
             groupName: assignment.groupName,
-            semester: assignment.semester,
-            calendarYear: assignment.academicYearNum,
-          }))
-        } : undefined
-      },
+            semester: Number(assignment.semester),
+            calendarYear: calendarYear,
+          }
+        })
+      }
+    }
+
+    // تحديث المرشد
+    const updateData: any = {
+      name,
+      email,
+    }
+    
+    if (password && password.trim() !== '') {
+      updateData.password = await bcrypt.hash(password, 10)
+    }
+
+    if (assignmentsData) {
+      updateData.advisorAssignments = assignmentsData
+    }
+
+    const updatedAdvisor = await prisma.user.update({
+      where: { id },
+      data: updateData,
       include: {
         advisorAssignments: {
           include: {

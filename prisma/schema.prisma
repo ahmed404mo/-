@@ -89,16 +89,6 @@ model FollowUp {
   createdAt      DateTime       @default(now())
 }
 
-// ========== السنوات الدراسية ==========
-model AcademicYear {
-  id        String   @id @default(cuid())
-  year      Int      // 1, 2, 3, 4
-  name      String   // "السنة الأولى", "السنة الثانية"
-  createdAt DateTime @default(now())
-
-  advisorAssignments AdvisorAssignment[]
-}
-
 // ========== الأقسام ==========
 model Department {
   id        String   @id @default(cuid())
@@ -116,12 +106,10 @@ model AdvisorAssignment {
   advisor        User         @relation(fields: [advisorId], references: [id])
   departmentId   String
   department     Department   @relation(fields: [departmentId], references: [id])
-  academicYearId String
-  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
   groupName      String
   semester       Int
   calendarYear   Int
   createdAt      DateTime     @default(now())
 
-  @@unique([advisorId, departmentId, academicYearId, groupName])
+  @@unique([advisorId, departmentId, groupName])
 }
