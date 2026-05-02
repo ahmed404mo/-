@@ -1,103 +1,127 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"] 
 }
 
 datasource db {
-  provider = "postgresql" 
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// ---------------- Enums ---------------- //
-// تحديد أنواع الصلاحيات، أنواع الرسائل، وحالتها
+// ========== الصلاحيات ==========
 enum Role {
-  ADMIN
-  DOCTOR
+  STUDENT
+  ADVISOR
+  SUPER_ADMIN 
 }
 
-enum ThesisType {
-  MASTER
-  PHD
+// ========== حالة المتابعة ==========
+enum FollowUpStatus {
+  OPEN      // قيد المتابعة
+  CLOSED    // تم الإغلاق
+  REFERRED  // تم التحويل لوحدة/لجنة
 }
 
-enum ThesisStatus {
-  PENDING      // قيد التجهيز
-  IN_PROGRESS  // قيد المناقشة
-  APPROVED     // مجازة
-}
-
-// ---------------- Models ---------------- //
-
+// ========== المستخدمين ==========
 model User {
-  id            String   @id @default(cuid())
-  name          String
-  role          Role     @default(DOCTOR)
-  academicTitle String   @default("دكتور") 
-  doctorCode    String?  @unique 
-  password      String   // النسخة المشفرة للأمان
-  tempPassword  String?  // النسخة النصية عشان تظهر في جدول الإدارة فقط
-  createdAt     DateTime @default(now())
-  image         String?
-}
-model FacultyDoctor {
-  id            String   @id @default(cuid())
-  name          String
-  academicTitle String   @default("دكتور") 
-  supervisions  Supervision[]
-  promotions    Promotion[]
-  createdAt     DateTime @default(now())
-}
-model ExternalExaminer {
-  id             String   @id @default(cuid())
-  name           String
-  universityName String
-  academicTitle  String
-  specialty      String
-  supervisions   Supervision[]
-}
-
-
-
-model Thesis {
-  id               String       @id @default(cuid())
-  title            String
-  studentName      String
-  type             ThesisType
-  status           ThesisStatus @default(PENDING)
-  registrationDate DateTime     @default(now())
-  defenseDate      DateTime?
-  
-  // شيلنا الـ onDelete من هنا
-  supervisors      Supervision[] 
-  createdAt        DateTime     @default(now())
-}
-
-model Promotion {
-  id            String   @id @default(cuid())
-  doctorId      String
-  doctor        FacultyDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  oldTitle      String
-  newTitle      String
-  promotionDate DateTime @default(now())
-}
-model Notification {
   id        String   @id @default(cuid())
-  title     String   // العنوان القصير (مثل: تم قبول الطلب)
-  message   String   // النص الكامل
-  type      String   @default("info") // info, warning, success
-  read      Boolean  @default(false)  // هل تمت القراءة؟
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(ADVISOR)
   createdAt DateTime @default(now())
+
+  // العلاقات
+  advisorAssignments AdvisorAssignment[]
+  interviews         Interview[]
+  followUps          FollowUp[]
 }
 
-model Supervision {
-  id                 String            @id @default(cuid())
-  thesisId           String
-  thesis             Thesis            @relation(fields: [thesisId], references: [id], onDelete: Cascade)
-  doctorId           String?
-  doctor             FacultyDoctor?    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  externalExaminerId String?
-  externalExaminer   ExternalExaminer? @relation(fields: [externalExaminerId], references: [id])
-  supervisionRole    String  
+// ========== ملف الطالب ==========
+model Student {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  name           String
+  email          String   @unique
+  year           Int
+  group          String
+  program        String
+  phone          String?
+  parentPhone    String?
+  createdAt      DateTime @default(now())
+
+  // العلاقات
+  interviews     Interview[]
+}
+
+// ========== المقابلة الإرشادية ==========
+model Interview {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  advisorId   String
+  advisor     User     @relation(fields: [advisorId], references: [id])
+  
+  date        DateTime @default(now())
+  problem     String   @db.Text
+  guidance    String   @db.Text
+  situation   String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  followUps   FollowUp[]
+}
+
+// ========== متابعة الحالة ==========
+model FollowUp {
+  id             String         @id @default(cuid())
+  interviewId    String
+  interview      Interview      @relation(fields: [interviewId], references: [id])
+  advisorId      String
+  advisor        User           @relation(fields: [advisorId], references: [id])
+  
+  sessionDate    DateTime       @default(now())
+  sessionType    String         
+  progress       String         @db.Text 
+  recommendation String?        @db.Text
+  status         FollowUpStatus @default(OPEN)
+  
+  createdAt      DateTime       @default(now())
+}
+
+// ========== السنوات الدراسية ==========
+model AcademicYear {
+  id        String   @id @default(cuid())
+  year      Int      // 1, 2, 3, 4
+  name      String   // "السنة الأولى", "السنة الثانية"
+  createdAt DateTime @default(now())
+
+  advisorAssignments AdvisorAssignment[]
+}
+
+// ========== الأقسام ==========
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  createdAt DateTime @default(now())
+  
+  advisorAssignments AdvisorAssignment[]
+}
+
+// ========== توزيع المرشدين ==========
+model AdvisorAssignment {
+  id             String       @id @default(cuid())
+  advisorId      String
+  advisor        User         @relation(fields: [advisorId], references: [id])
+  departmentId   String
+  department     Department   @relation(fields: [departmentId], references: [id])
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+  groupName      String
+  semester       Int
+  calendarYear   Int
+  createdAt      DateTime     @default(now())
+
+  @@unique([advisorId, departmentId, academicYearId, groupName])
 }
