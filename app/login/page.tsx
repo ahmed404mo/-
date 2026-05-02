@@ -15,33 +15,28 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    // جلب الجلسة الحالية أولاً
-    const sessionRes = await fetch('/api/auth/session');
-    const currentSession = await sessionRes.json();
-    
-    // إذا كان هناك جلسة حالية، اذهب مباشرة
-    if (currentSession?.user) {
-      const role = currentSession.user.role;
+    const res = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (res?.error) {
+      setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      setLoading(false);
+    } else {
+      // جلب الجلسة لمعرفة صلاحية المستخدم
+      const sessionRes = await fetch('/api/auth/session');
+      const session = await sessionRes.json();
+      
+      const role = session?.user?.role;
+      
       if (role === 'SUPER_ADMIN') {
         window.location.href = '/admin';
       } else {
         window.location.href = '/dashboard';
       }
-      setLoading(false);
-      return;
     }
-
-    // محاولة تسجيل الدخول مع callbackUrl
-    const result = await signIn('credentials', {
-      redirect: true,
-      callbackUrl: '/dashboard',
-      email,
-      password,
-    });
-    
-    // إذا وصلنا إلى هنا، فهناك خطأ
-    setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-    setLoading(false);
   };
 
   return (
